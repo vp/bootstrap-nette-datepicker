@@ -74,11 +74,15 @@ class BootstrapDatePicker extends \Nette\Forms\Controls\BaseControl {
 		$this->language = $language;
 	}
 
-	public static function register($format='yyyy-mm-dd', $language = 'en', $method = 'addDatePicker') {
+	public static function register($format=self::W3C_DATE_FORMAT, $language = self::DEFAULT_LANGUAGE, $method = 'addDatePicker', $class_name = NULL) {
 		$class = function_exists('get_called_class')?get_called_class():__CLASS__;
 		\Nette\Forms\Container::extensionMethod(
-			$method, function (\Nette\Forms\Container $container, $name, $label = NULL) use ($class, $format, $language) {
-				return $container[$name] = new $class($format, $language,  $label);
+			$method, function (\Nette\Forms\Container $container, $name, $label = NULL) use ($class, $format, $language, $class_name) {
+				$control = $container[$name] = new $class($format, $language,  $label);
+				if ($class_name){
+					$control->setClassName($class_name);
+				}
+				return $control;
 			}
 		);
 	}
@@ -318,7 +322,7 @@ class BootstrapDatePicker extends \Nette\Forms\Controls\BaseControl {
 
 		} elseif (is_string($value)) {
 			$rawValue = $value;
-			$value = \DateTime::createFromFormat($this->toPhpFormat($this->format), $value)->format('Y-m-d');
+			$value = \DateTime::createFromFormat($this->toPhpFormat($this->format), $value)->format('Y-m-d H:i');
 
 		} else {
 			throw new \InvalidArgumentException();
@@ -440,8 +444,8 @@ class BootstrapDatePicker extends \Nette\Forms\Controls\BaseControl {
 	 */
 	function toPhpFormat ($str) {
 		$f = $this->strReplace(
-			array('dd',	'd',	'mm',	'm',	'MM',	'M',	'yyyy',	'yyy',	'yy'),
-			array('d',	'j',	'm',	'n',	'F',	'M',	'Y',		'y',		'y'),
+			array('dd',	'd',	'mm',	'm',	'MM',	'M',	'yyyy',	'yyy',	'yy', 'hh', 'ii'),
+			array('d',	'j',	'm',	'n',	'F',	'M',	'Y',		'y',		'y',	'H',	'i'),
 			$str
 		);
 		return $f;
